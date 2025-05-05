@@ -118,3 +118,18 @@
   .logOut a:hover .fa-solid {
     transform: translateX(2px);
   }
+  
+  .dashboard-link {
+    margin-left: 1rem;
+    color: #e9f2ff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+  }
+  
+  .dashboard-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }

@@ -1,0 +1,329 @@
+<%- include('_header') %>
+
+<link rel="stylesheet" href="/css/dashboard.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<div class="dashboard">
+    <header class="dashboard-header">
+        <h1 class="dashboard-title">My Habits</h1>
+        <button class="btn btn-primary" onclick="openModal()">Add New Habit</button>
+    </header>
+
+    <section class="progress-tracker">
+        <h2>Weekly Progress</h2>
+        <div class="progress-bar">
+            <div class="progress-fill progress-<%= Math.round(progress) %>"></div>
+        </div>
+        <p><%= progress %>% of habits completed this week</p>
+    </section>
+
+    <section class="habits-grid">
+        <% if(habits && habits.length > 0) { %>
+            <% habits.forEach(function(habit) { %>
+                <div class="habit-card">
+                    <div class="habit-header">
+                        <h3 class="habit-title"><%= habit.title %></h3>
+                        <div class="habit-actions">
+                            <a href="/habits/delete-habit/?id=<%= habit._id %>" class="delete-habit" title="Delete Habit">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <% if(habit.desc) { %>
+                        <p class="habit-desc"><%= habit.desc %></p>
+                    <% } %>
+                    <% if(habit.time) { %>
+                        <div class="habit-time">
+                            <i class="far fa-clock"></i>
+                            <span><%= habit.time %></span>
+                        </div>
+                    <% } %>
+                    <div class="habit-status">
+                        <% 
+                            let todayStatus = 'none';
+                            if(habit.dates) {
+                                const today = getTodayDate();
+                                console.log('Today\'s date:', today);
+                                const todayRecord = habit.dates.find(date => {
+                                    console.log('Checking date:', date.date, 'against today:', today);
+                                    return date.date === today;
+                                });
+                                if(todayRecord) {
+                                    todayStatus = todayRecord.complete;
+                                    console.log('Found status:', todayStatus);
+                                }
+                            }
+                        %>
+                        <% if(todayStatus === 'y') { %>
+                            <div class="done-status">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Done!</span>
+                            </div>
+                        <% } else { %>
+                            <a href="/habits/toggle-status/?id=<%= habit._id %>&date=<%= getTodayDate() %>" class="done-button">
+                                <i class="fas fa-check"></i>
+                                Mark as Done
+                            </a>
+                        <% } %>
+                    </div>
+                    <div class="streak-counter">
+                        <span>🔥</span>
+                        <span>
+                            <% 
+                                let streak = 0;
+                                if(habit.dates && habit.dates.length > 0) {
+                                    // Sort dates in descending order
+                                    const sortedDates = [...habit.dates].sort((a, b) => {
+                                        const [monthA, dayA] = a.date.split(' ').map(Number);
+                                        const [monthB, dayB] = b.date.split(' ').map(Number);
+                                        if(monthA !== monthB) return monthB - monthA;
+                                        return dayB - dayA;
+                                    });
+
+                                    // Count consecutive completed days
+                                    for(let i = 0; i < sortedDates.length; i++) {
+                                        if(sortedDates[i].complete === 'y') {
+                                            streak++;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                }
+                            %>
+                            <%= streak %> Day Streak
+                        </span>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="habit-card">
+                <h3 class="habit-title">No habits yet</h3>
+                <p>Click "Add New Habit" to get started!</p>
+            </div>
+        <% } %>
+    </section>
+
+    <section class="calendar-section">
+        <h2>Habit Calendar</h2>
+        <div class="calendar-header">
+            <div class="month-year">
+                <% 
+                    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    const today = new Date();
+                    const currentMonth = months[today.getMonth()];
+                    const currentYear = today.getFullYear();
+                %>
+                <%= currentMonth %> <%= currentYear %>
+            </div>
+        </div>
+        <div class="calendar-grid">
+            <div class="calendar-weekdays">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+            <div class="calendar-days">
+                <% 
+                    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    const startingDay = firstDay.getDay();
+                    const totalDays = lastDay.getDate();
+                    
+                    // Add empty cells for days before the first day of the month
+                    for(let i = 0; i < startingDay; i++) {
+                %>
+                    <div class="calendar-day empty"></div>
+                <% } %>
+                
+                <% 
+                    // Add days of the month
+                    for(let day = 1; day <= totalDays; day++) {
+                        const currentDate = `${today.getMonth() + 1} ${day}`;
+                        let completedHabits = [];
+                        let isToday = false;
+                        
+                        // Check if this is today
+                        const todayStr = getTodayDate();
+                        if (currentDate === todayStr) {
+                            isToday = true;
+                        }
+                        
+                        // Debug information
+                        console.log('Processing day:', day);
+                        console.log('Current date:', currentDate);
+                        console.log('Today\'s date:', todayStr);
+                        
+                        // Check which habits are completed for this day
+                        habits.forEach(habit => {
+                            if(habit.dates && Array.isArray(habit.dates)) {
+                                console.log('Checking habit:', habit.title);
+                                console.log('Habit dates:', habit.dates);
+                                
+                                const dateRecord = habit.dates.find(date => {
+                                    console.log('Comparing:', date.date, currentDate);
+                                    return date.date === currentDate && date.complete === 'y';
+                                });
+                                
+                                if(dateRecord) {
+                                    console.log('Found completed habit:', habit.title);
+                                    completedHabits.push(habit.title);
+                                }
+                            }
+                        });
+                        
+                        console.log('Completed habits for', currentDate, ':', completedHabits);
+                %>
+                    <div class="calendar-day <%= isToday ? 'today' : '' %> <%= completedHabits.length > 0 ? 'completed' : '' %>" 
+                         data-completed-habits="<%= completedHabits.join(', ') %>"
+                         data-date="<%= currentDate %>"
+                         onclick="showHabitsModal('<%= currentDate %>', '<%= completedHabits.join(',') %>')">
+                        <%= day %>
+                        <% if(completedHabits.length > 0) { %>
+                            <div class="completion-indicator">
+                                <i class="fas fa-check"></i>
+                                <span class="completion-count"><%= completedHabits.length %></span>
+                            </div>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </section>
+
+    <!-- Habits Modal -->
+    <div class="modal" id="habitsModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeHabitsModal()">&times;</button>
+            <h2>Habits for <span id="modalDate"></span></h2>
+            <div id="modalHabitsList" class="habits-list">
+                <!-- Habits will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <section class="quote-section">
+        <p class="quote-text">"The secret of getting ahead is getting started."</p>
+        <p class="quote-author">- Mark Twain</p>
+    </section>
+</div>
+
+<!-- Goal Setting Modal -->
+<div class="modal" id="habitModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h2>Add New Habit</h2>
+        <form id="habitForm" action="/habits/create-habit" method="POST">
+            <div class="form-group">
+                <label for="habitName">Habit Name</label>
+                <input type="text" id="habitName" name="title" placeholder="e.g., Morning Meditation" required>
+            </div>
+            <div class="form-group">
+                <label for="habitDesc">Description</label>
+                <textarea id="habitDesc" name="desc" placeholder="Describe your habit (optional)" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="habitTime">Time (Optional)</label>
+                <input type="time" id="habitTime" name="time" placeholder="When do you want to do this habit?">
+            </div>
+            <button type="submit" class="btn btn-primary">Create Habit</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Modal functionality
+    function openModal() {
+        document.getElementById('habitModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('habitModal').classList.remove('active');
+    }
+
+    // Habits Modal functionality
+    function showHabitsModal(date, completedHabitsStr) {
+        const modal = document.getElementById('habitsModal');
+        const modalDate = document.getElementById('modalDate');
+        const habitsList = document.getElementById('modalHabitsList');
+        
+        // Format the date for display
+        const [month, day] = date.split(' ');
+        const dateObj = new Date();
+        dateObj.setMonth(parseInt(month) - 1);
+        dateObj.setDate(parseInt(day));
+        const formattedDate = dateObj.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        modalDate.textContent = formattedDate;
+        
+        // Clear and populate habits list
+        habitsList.innerHTML = '';
+        const completedHabits = completedHabitsStr ? completedHabitsStr.split(',') : [];
+        
+        if (completedHabits.length > 0) {
+            completedHabits.forEach(habit => {
+                const habitItem = document.createElement('div');
+                habitItem.className = 'habit-item';
+                habitItem.innerHTML = `
+                    <i class="fas fa-check"></i>
+                    <span>${habit}</span>
+                `;
+                habitsList.appendChild(habitItem);
+            });
+        } else {
+            habitsList.innerHTML = '<div class="no-habits">No habits completed on this day</div>';
+        }
+        
+        modal.classList.add('active');
+    }
+
+    function closeHabitsModal() {
+        document.getElementById('habitsModal').classList.remove('active');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('habitsModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeHabitsModal();
+        }
+    });
+
+    // Close modal when pressing Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeHabitsModal();
+        }
+    });
+
+    // Add tooltip functionality for calendar days
+    document.querySelectorAll('.calendar-day').forEach(day => {
+        const completedHabits = day.getAttribute('data-completed-habits');
+        if (completedHabits) {
+            day.addEventListener('mouseenter', function(e) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'calendar-tooltip';
+                tooltip.textContent = completedHabits;
+                document.body.appendChild(tooltip);
+
+                const rect = day.getBoundingClientRect();
+                tooltip.style.left = rect.left + 'px';
+                tooltip.style.top = (rect.bottom + 5) + 'px';
+            });
+
+            day.addEventListener('mouseleave', function() {
+                const tooltip = document.querySelector('.calendar-tooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+            });
+        }
+    });
+</script> 

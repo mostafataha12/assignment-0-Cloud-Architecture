@@ -1,6 +1,27 @@
 const Habit = require('../models/habit');
 const User = require('../models/user');
 
+// this function will return the current data, which will helpful for getting the range of dates
+function getTodayDate() {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const date = today.getDate();
+    const formattedDate = `${month} ${date}`;
+    console.log('Generated today\'s date:', formattedDate);
+    return formattedDate;
+}
+
+// Debug function to check habit data
+async function debugHabit(habitId) {
+    const habit = await Habit.findById(habitId);
+    console.log('Debug - Habit Data:', {
+        id: habit._id,
+        title: habit.title,
+        dates: habit.dates
+    });
+    return habit;
+}
+
 // this function creates a new habit
 module.exports.createHabit = async function(req, res) {
     try {
@@ -10,17 +31,18 @@ module.exports.createHabit = async function(req, res) {
         // console.log(habit);
         if(habit) {
             console.log('Habit exists');
-            return res.redirect('/');
+            return res.redirect('/habits/dashboard');
         } else {
             let habit = await Habit.create({
                 title: req.body.title,
                 desc: req.body.desc,
+                time: req.body.time || null,
                 user: req.user._id,
-                dates : {date : await getTodayDate() , completed : "none"}
+                dates: [{date: getTodayDate(), complete: "none"}]
             });
 
             req.flash('success', 'Habit Created Successfully');
-            return res.redirect('/');
+            return res.redirect('/habits/dashboard');
         }
     } catch (error) {
         console.log('Error in habitController/createHabit: ', error);
@@ -33,38 +55,55 @@ module.exports.toggleStatus = async function(req, res) {
     try {
         let id = req.query.id;
         let date = req.query.date;
-        const habit = await Habit.findById(id);
-        console.log(date);
+        console.log('Toggling status for habit:', id, 'on date:', date);
+        
+        // Debug current habit state
+        const habit = await debugHabit(id);
+        console.log('Current habit state:', habit);
 
         if(!habit) {
             console.log('Habit not present!');
-            return res.redirect('/');
+            return res.redirect('/habits/dashboard');
         }
 
-        // take out the date array of the habit.
-        let dates = habit.dates;
-        let found = false;
-        // changes the complete argument accodingly.
-        dates.find((item, index) =>{
-            if(item.date == date){
-                if(item.complete === 'y'){
-                    item.complete = 'n';
-                }else if(item.complete === 'n'){
-                    item.complete = 'x';
-                }else if(item.complete === 'x'){
-                    item.complete = 'y';
-                }
-                found = true;
-            }
+        // Initialize dates array if it doesn't exist
+        if (!habit.dates) {
+            habit.dates = [];
+        }
+
+        // Find existing date record
+        const dateIndex = habit.dates.findIndex(item => {
+            console.log('Comparing dates:', item.date, date);
+            return item.date === date;
         });
-
-        if(!found) {
-            dates.push({date : date, complete : 'y'});
+        
+        if (dateIndex !== -1) {
+            // Update existing date record
+            const currentStatus = habit.dates[dateIndex].complete;
+            let newStatus;
+            
+            if (currentStatus === 'y') newStatus = 'n';
+            else if (currentStatus === 'n') newStatus = 'x';
+            else if (currentStatus === 'x') newStatus = 'y';
+            else newStatus = 'y';
+            
+            habit.dates[dateIndex].complete = newStatus;
+            console.log('Updated existing date record:', habit.dates[dateIndex]);
+        } else {
+            // Add new date record
+            const newDate = { date: date, complete: 'y' };
+            habit.dates.push(newDate);
+            console.log('Added new date record:', newDate);
         }
-        // at last save the dates.
-        habit.dates = dates;
+        
+        // Save the habit
         await habit.save();
-        return res.redirect('/');
+        
+        // Debug final habit state
+        const updatedHabit = await debugHabit(id);
+        console.log('Updated habit state:', updatedHabit);
+        
+        return res.redirect('/habits/dashboard');
         
     } catch (error) {
         console.log('Error in habitController/toggleStatus', error);
@@ -82,7 +121,7 @@ module.exports.deleteHabit = async function(req, res) {
 
         await Habit.deleteOne({ _id : id, user: user });
         req.flash('success', 'Habit Deleted Successfully');
-        return res.redirect('/');
+        return res.redirect('/habits/dashboard');
         
     } catch (error) {
         console.log('Error in habitController/deleteHabit', error);
@@ -111,7 +150,7 @@ module.exports.editHabit = async function(req, res) {
         );
         // console.log(updatedResult);
         req.flash('success', 'Habit Updated Successfully');
-        return res.redirect('/');
+        return res.redirect('/habits/dashboard');
         
     } catch (error) {
         console.log('Error in habitController/editHabit', error);
@@ -121,13 +160,29 @@ module.exports.editHabit = async function(req, res) {
     }
 }
 
+// dashboard view
+module.exports.dashboard = async function(req, res) {
+    try {
+        // Get all habits for the current user
+        const habits = await Habit.find({ user: req.user._id });
+        
+        // Calculate weekly progress
+        const totalHabits = habits.length;
+        const completedHabits = habits.filter(habit => {
+            const today = getTodayDate();
+            return habit.dates.some(date => date.date === today && date.complete === 'y');
+        }).length;
+        const progress = totalHabits > 0 ? (completedHabits / totalHabits) * 100 : 0;
 
-// this fucntion will return the current data, which will helpful for getting the range of dates
-function getTodayDate(){
-    var today = new Date();
-    let date = today.getDate();
-    let month = today.getMonth()+1;
-
-    let fullDate = month + " " + date;
-    return fullDate;
-}
+        return res.render('dashboard', {
+            title: 'Dashboard',
+            habits: habits,
+            progress: progress,
+            getTodayDate: getTodayDate,
+            today: getTodayDate()
+        });
+    } catch (err) {
+        console.log('Error in dashboard:', err);
+        return res.redirect('back');
+    }
+};

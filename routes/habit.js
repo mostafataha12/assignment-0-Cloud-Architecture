@@ -3,6 +3,9 @@ const express = require('express');
 const router = express.Router();
 const habitController = require('../controllers/habit_controller');
 
+// dashboard view
+router.get('/dashboard', habitController.dashboard);
+
 // create new habit
 router.post('/create-habit', habitController.createHabit);
 // change status of the habit

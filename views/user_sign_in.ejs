@@ -1,19 +1,55 @@
-<link rel="stylesheet" href="/css/user_sign_in.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Habit Tracker</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="landing-container">
+        <nav class="navbar">
+            <div class="logo">
+                <i class="fas fa-check-circle"></i>
+                <span>Habit Tracker</span>
+            </div>
+            <div class="nav-buttons">
+                <a href="/" class="btn btn-outline">Home</a>
+                <a href="/users/sign-up" class="btn btn-primary">Sign Up</a>
+            </div>
+        </nav>
 
+        <main class="auth-container">
+            <div class="auth-card">
+                <h1>Welcome back!</h1>
+                <p class="auth-subtitle">Sign in to continue tracking your habits</p>
+                
+                <form action="/users/create-session" method="POST" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">Sign In</button>
+                </form>
 
-<div class="signin">
-    <h1>Welcome back!</h1>
-    <form action="/users/create-session" method="POST" class="form">
-        <input type="email" name="email" placeholder="Email"  required>
-        <input type="password" name="password" placeholder="Password"  required>
-        <button>Sign In</button>
-    </form>
+                <div class="auth-links">
+                    <a href="/users/forget-password" class="forgot-password">Forgot Password?</a>
+                    <p class="auth-switch">
+                        Don't have an account? <a href="/users/sign-up">Sign Up</a>
+                    </p>
+                </div>
+            </div>
+        </main>
 
-    <p>
-        <a href="/users/forget-password"> Forget Password?</a>
-    </p>
-
-    <p>
-        <a href="/users/sign-up">Don't have an account?</a>
-    </p>
-</div>
+        <footer class="footer">
+            <p>&copy; 2024 Habit Tracker. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -48,8 +48,12 @@ passport.checkAuthentication = function (req, res, next){
 // Setting authentication
 passport.setAuthenticatedUser = function(req, res, next){
     if(req.isAuthenticated()){
-    // sending current signed in user to the locals for views
-        res.locals.user = req.user
+        // sending current signed in user to the locals for views
+        res.locals.user = req.user;
+        // If user is authenticated and trying to access home page, redirect to dashboard
+        if(req.path === '/'){
+            return res.redirect('/habits/dashboard');
+        }
     }
     next();
 }

@@ -58,7 +58,7 @@ module.exports.create = async function(req, res) {
 // signs in existing user
 module.exports.createSession = async function(req, res) {
     req.flash('success', 'You are logged in!');
-    return res.redirect('/');
+    return res.redirect('/habits/dashboard');
 }
 
 // signs out the user

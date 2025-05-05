@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker Dashboard</title>
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        <header class="dashboard-header">
+            <h1 class="dashboard-title">My Habits</h1>
+            <button class="btn btn-primary" onclick="openModal()">Add New Habit</button>
+        </header>
+
+        <section class="progress-tracker">
+            <h2>Weekly Progress</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 75%"></div>
+            </div>
+            <p>75% of habits completed this week</p>
+        </section>
+
+        <section class="habits-grid">
+            <div class="habit-card">
+                <h3 class="habit-title">Morning Meditation</h3>
+                <div class="streak-counter">
+                    <span>🔥</span>
+                    <span>7 Day Streak</span>
+                </div>
+            </div>
+            <div class="habit-card">
+                <h3 class="habit-title">Daily Reading</h3>
+                <div class="streak-counter">
+                    <span>🔥</span>
+                    <span>5 Day Streak</span>
+                </div>
+            </div>
+            <div class="habit-card">
+                <h3 class="habit-title">Evening Walk</h3>
+                <div class="streak-counter">
+                    <span>🔥</span>
+                    <span>3 Day Streak</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="calendar-section">
+            <h2>Habit Calendar</h2>
+            <div class="calendar-grid">
+                <!-- Calendar days will be dynamically generated -->
+            </div>
+        </section>
+
+        <section class="quote-section">
+            <p class="quote-text">"The secret of getting ahead is getting started."</p>
+            <p class="quote-author">- Mark Twain</p>
+        </section>
+    </div>
+
+    <!-- Goal Setting Modal -->
+    <div class="modal" id="habitModal">
+        <div class="modal-content">
+            <h2>Add New Habit</h2>
+            <form id="habitForm">
+                <div class="form-group">
+                    <label for="habitName">Habit Name</label>
+                    <input type="text" id="habitName" required>
+                </div>
+                <div class="form-group">
+                    <label for="habitFrequency">Frequency</label>
+                    <select id="habitFrequency">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="habitGoal">Goal</label>
+                    <input type="text" id="habitGoal" placeholder="e.g., Read for 30 minutes">
+                </div>
+                <button type="submit" class="btn btn-primary">Create Habit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal functionality
+        function openModal() {
+            document.getElementById('habitModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('habitModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('habitModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Generate calendar days
+        function generateCalendar() {
+            const calendarGrid = document.querySelector('.calendar-grid');
+            const daysInMonth = 31; // Simplified for example
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = i;
+                
+                // Randomly mark some days as completed for demo
+                if (Math.random() > 0.7) {
+                    dayElement.classList.add('completed');
+                }
+                
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        // Initialize calendar
+        generateCalendar();
+    </script>
+</body>
+</html> 

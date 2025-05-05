@@ -9,6 +9,6 @@ router.get('/', homeController.home);
 router.get('/404', homeController.notFound)
 
 router.use('/users', require('./users'));
-
+router.use('/habits', require('./habit'));
 
 module.exports = router;
