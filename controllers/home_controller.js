@@ -6,6 +6,11 @@ const Habit = require('../models/habit');
 // this function takes user to home
 module.exports.home = async function(req, res) {
     if(req.user){
+        // If user is admin, redirect to admin dashboard
+        if(req.user.email === 'admin@admin.com'){
+            return res.redirect('/admin/dashboard');
+        }
+        // Otherwise redirect to habits dashboard
         return res.redirect('/habits/dashboard');
     }else{
         return res.render('index', {

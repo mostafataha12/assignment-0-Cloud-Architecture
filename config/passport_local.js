@@ -50,8 +50,13 @@ passport.setAuthenticatedUser = function(req, res, next){
     if(req.isAuthenticated()){
         // sending current signed in user to the locals for views
         res.locals.user = req.user;
-        // If user is authenticated and trying to access home page, redirect to dashboard
+        // If user is authenticated and trying to access home page
         if(req.path === '/'){
+            // If user is admin, redirect to admin dashboard
+            if(req.user.email === 'admin@admin.com'){
+                return res.redirect('/admin/dashboard');
+            }
+            // Otherwise redirect to habits dashboard
             return res.redirect('/habits/dashboard');
         }
     }

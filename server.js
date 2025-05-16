@@ -41,6 +41,7 @@ app.use((req, res, next) => {
 app.use("/", require("./routes/index"));
 app.use("/users", require("./routes/users"));
 app.use("/habits", require("./routes/habit"));
+app.use("/admin", require("./routes/admin"));
 
 app.use((req, res) => {
     res.status(404).render("404");
